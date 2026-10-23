@@ -121,6 +121,7 @@ ol.tuto{margin:10px 0;padding-left:22px}.tuto li{display:list-item;background:no
   <h2>🧪 Laboratoire <span class="pill" id="lc"></span></h2>
   <ul id="labw"></ul>
   <div class="row"><label>Gold Pass (temps et ressources)<select id="gp"><option value="0">Aucune</option><option value="10">10 %</option><option value="15">15 %</option><option value="20">20 %</option></select></label><label id="nwl">Nombre d’ouvriers<select id="nw"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label></div>
+  <small class="mut" id="nwh" style="display:block;margin-top:8px;line-height:1.5"></small>
  </section>
 
  <section id="s-q">
@@ -231,7 +232,7 @@ function importJson(raw){
 
 /* ---- Rendu ---- */
 function render(){
- inv();$('nw').innerHTML=[...Array(S.v==='m'?6:4)].map((_,i)=>'<option>'+(i+1)+'</option>').join('');$('nw').value=nw();document.body.dataset.v=S.v;
+ inv();$('nw').innerHTML=[...Array(S.v==='m'?6:4)].map((_,i)=>'<option>'+(i+1)+'</option>').join('');$('nw').value=nw();$('nwh').innerHTML=S.v==='b'?bbHint():'';document.body.dataset.v=S.v;
  document.querySelector('meta[name=theme-color]').content=S.v==='b'?'#0d1519':'#14110f';
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.v));
  $('tm').textContent=S.workers.filter(w=>w.v==='m').length;$('tb').textContent=S.workers.filter(w=>w.v==='b').length;
@@ -244,7 +245,7 @@ function render(){
 /* ---- Données du jeu (data.js) : durées, coûts et niveaux autorisés par HDV ---- */
 const D=window.D||{E:[],G:{}},DE={};D.E.forEach(e=>DE[e[0]]=e);
 let INV={m:{},b:{}},GL={m:{},b:{}},TODO=[];
-const BOB=1000064,AL=[1000053,1000080],nw=()=>S.v==='b'?S.nwb||Math.min(4,Math.max(2,S.workers.filter(w=>w.v==='b'&&w.kind!=='l').length)):S.nw||Math.min(6,Math.max(1,(INV.m[1000015]||[]).length+(INV.m[BOB]?1:0))),gp=()=>1-(S.gp||0)/100,dur=s=>s?fmt(s*gp()*1e3):'—',big=1e9,RE={G:'🪙',E:'💧',D:'🖤',X:'🪙/💧'};
+const BOB=1000064,BOBC=1000065,AL=[1000053,1000080],nw=()=>S.v==='b'?S.nwb||bbAuto().n:S.nw||Math.min(6,Math.max(1,(INV.m[1000015]||[]).length+(INV.m[BOB]?1:0))),gp=()=>1-(S.gp||0)/100,dur=s=>s?fmt(s*gp()*1e3):'—',big=1e9,RE={G:'🪙',E:'💧',D:'🖤',X:'🪙/💧'};
 const kc=n=>(n>=1e6?+(n/1e6).toFixed(1)+' M':n>=1e3?Math.round(n/1e3)+' k':Math.round(n))+'';
 function inv(){
  INV={m:{},b:{}};GL={m:{},b:{}};
@@ -253,6 +254,17 @@ function inv(){
  [['buildings','m'],['heroes','m'],['units','m'],['siege_machines','m'],['spells','m'],['pets','m'],['equipment','m'],['buildings2','b'],['units2','b'],['heroes2','b'],['traps','m'],['traps2','b'],['helpers','m']].forEach(([k,v])=>(j[k]||[]).forEach(o=>{const a=INV[v][o.data]=INV[v][o.data]||[];for(let i=0;i<(o.cnt||1);i++)a.push({lv:o.lvl??1,t:o.timer>0,cd:Math.max(0,(o.helper_cooldown||o.cooldown||o.timer||0)-el)})}));
  const g=(v,id)=>(INV[v][id]||[]).reduce((m,o)=>Math.max(m,o.lv),0)||undefined,G=D.G;
  GL.m={th:g('m',G.th),hh:g('m',G.hh),bs:g('m',G.bs)};GL.b={bh:g('b',G.bh),sl:g('b',G.sl)};
+}
+/* Base des ouvriers (4 au maximum) : ouvrier de base + O.T.T.O (HDV de la base niv. 6) + B.O.B (station de B.O.B niv. 5).
+   L’ouvrier à 1 000 gemmes (B.O.T.O) n’est pas dans l’export : il s’ajoute avec le réglage « Nombre d’ouvriers ». */
+function bbAuto(){
+ const bh=+GL.b.bh||0,bc=Math.max(0,...(INV.b[BOBC]||[]).map(o=>+o.lv||0)),ob=bc>=5||!!INV.m[BOB],ot=bh>=6,
+ busy=S.workers.filter(w=>w.v==='b'&&w.kind!=='l').length,src=1+(ot?1:0)+(ob?1:0);
+ return{bh,bc,ot,ob,busy,src,n:Math.min(4,Math.max(src,busy))}
+}
+function bbHint(){
+ const a=bbAuto(),m=b=>b?'✅':'⬜',v=n=>n?'niv. '+n:'inconnu';
+ return`✅ Ouvrier de base<br>${m(a.ot)} O.T.T.O : HDV de la base niv. 6 (le vôtre : ${v(a.bh)})<br>${m(a.ob)} B.O.B : station de B.O.B niv. 5 (la vôtre : ${a.bc?v(a.bc):a.ob?'cabane de B.O.B présente':'inconnue'})<br>💎 Ouvrier à 1 000 gemmes : absent de l’export, à ajouter avec « Nombre d’ouvriers ».<br>Détecté : <b>${a.n}</b>${a.busy>a.src?` (${a.busy} ouvriers occupés)`:''}${S.nwb?`<br>Réglé à la main : <b>${S.nwb}</b> <button class="ib" data-auto>↺ Auto</button>`:''}`
 }
 const gl=e=>GL[e[1]][e[3]]??big,mx=(e,g)=>e[6].reduce((m,l)=>l[1]<=g?Math.max(m,l[0]):m,0),cap=(e,g)=>e[4]?e[4][Math.min(g,e[4].length-1)]||0:1;
 const qi=x=>{const e=DE[x.did],L=e&&x.lv&&e[6].find(l=>l[0]===x.lv);return L?`<br><small>niv. ${x.lv-1} → ${x.lv} · ${dur(L[2])}</small>`:''};
@@ -471,6 +483,7 @@ $('tq').onclick=e=>{const b=e.target.closest('button');if(b){S.tm=b.dataset.m;sa
 ['ts','tr','tl1','tl2'].forEach(i=>$(i).addEventListener('input',renderT));
 $('pm').onchange=()=>{S.push=$('pm').checked;save();render()};$('pa').onchange=()=>{S.pa=$('pa').checked;save();render()};
 $('nw').onchange=()=>{S[S.v==='m'?'nw':'nwb']=+$('nw').value;save();render()};
+$('nwh').onclick=e=>{if(e.target.closest('[data-auto]')){delete S.nwb;save();render()}};
 $('gp').value=S.gp??20;$('gp').onchange=()=>{S.gp=+$('gp').value;save();render()};
 
 /* ---- Notifications ----
