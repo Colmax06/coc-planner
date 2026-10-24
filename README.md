@@ -15,8 +15,8 @@ Application web statique (HTML + JavaScript, aucun serveur), pensée pour le té
 - **Reste à faire** pour votre HDV, avec onglets Constructions / Laboratoire, tris et filtres (nom, niveau, ressource).
 - **Bâtiments et coût pour finir** : un exemplaire par ligne, coûts, durées, « Niveau max » en vert.
 - **Réglages** : Gold Pass, nombre d’ouvriers (1 à 6 au village, 1 à 4 à la base des ouvriers), artisans, tour de l’horloge, horaires sans connexion.
-- **Mode push** : prérequis du HDV et priorités pour monter le plus vite possible.
-- **Notifications** et **export .ics** (événements ou tâches).
+- **Mode push** : prérequis du HDV, lancement du HDV dès qu’ils sont terminés, puis améliorations importantes pendant qu’il s’améliore.
+- **Notifications** et **export .ics** (un événement par amélioration, avec alarme).
 
 ## Utiliser
 
