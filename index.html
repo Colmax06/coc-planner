@@ -167,8 +167,8 @@ ol.tuto{margin:10px 0;padding-left:22px}.tuto li{display:list-item;background:no
 <section id="s-nt">
  <h2>🔔 Notifications</h2>
  <p class="mut" id="np" style="margin:0 0 8px"></p>
- <div class="row"><button id="nb" class="pri">Activer les notifications</button><button id="nt">Envoyer un test</button><select id="icf" aria-label="Format du fichier"><option value="e">Événements (Google Agenda)</option><option value="t">Tâches (autres applis)</option></select><button id="ics">📅 Exporter en .ics</button></div>
- <p><small>Les alertes partent tant que la page reste ouverte. Le fichier .ics crée un événement par amélioration (Google Agenda) ou une tâche (autres applis), avec une alarme à l’heure de fin. Ni Google Agenda ni Google Tasks ne lisent les tâches .ics. Sur Android, la notification système demande que sw.js soit hébergé à côté de cette page en HTTPS.</small></p>
+ <div class="row"><button id="nb" class="pri">Activer les notifications</button><button id="nt">Envoyer un test</button><button id="ics">📅 Exporter en .ics</button></div>
+ <p><small>Les alertes partent tant que la page reste ouverte. Le fichier .ics crée un événement par amélioration, à l’heure de fin, avec une alarme. Sur Android, la notification système demande que sw.js soit hébergé à côté de cette page en HTTPS.</small></p>
 </section>
 
 
@@ -243,7 +243,7 @@ function render(){
  renderW();renderT();renderC();renderB();renderS();renderSug();
 }
 /* ---- Données du jeu (data.js) : durées, coûts et niveaux autorisés par HDV ---- */
-const D=window.D||{E:[],G:{}},DE={};D.E.forEach(e=>DE[e[0]]=e);
+const D=window.D||{E:[],G:{}},DE={};D.E.forEach(e=>DE[e[0]]=e);if(D.T&&D.G.th&&!DE[D.G.th])DE[D.G.th]=[D.G.th,'m','S','th',0,'G',D.T.map(l=>[l[0],0,l[1],l[2]])];
 let INV={m:{},b:{}},GL={m:{},b:{}},TODO=[];
 const BOB=1000064,BOBC=1000065,AL=[1000053,1000080],nw=()=>S.v==='b'?S.nwb||bbAuto().n:S.nw||Math.min(6,Math.max(1,(INV.m[1000015]||[]).length+(INV.m[BOB]?1:0))),gp=()=>1-(S.gp||0)/100,dur=s=>s?fmt(s*gp()*1e3):'—',big=1e9,RE={G:'🪙',E:'💧',D:'🖤',X:'🪙/💧'};
 const kc=n=>(n>=1e6?+(n/1e6).toFixed(1)+' M':n>=1e3?Math.round(n/1e3)+' k':Math.round(n))+'';
@@ -309,7 +309,7 @@ function renderS(){
 function renderSug(){
  const busy=k=>S.workers.filter(w=>w.v===S.v&&(k==='l')===(w.kind==='l')).length,free={b:nw()-busy('b'),l:1-busy('l')},
  sc=x=>(S.push&&S.v==='m'?(x.t===1?300:x.t===2?150:0):0)+(x.kind==='h'?50:x.kind==='l'?40:30)+(online(tEnd(x.secs))?25:-100)+Math.min(x.secs*gp()/86400,10),
- h=[['b','Ouvrier libre'],['l','Labo libre']].map(([k,t])=>{const x=free[k]>0&&TODO.filter(y=>y.secs>0&&(k==='l')===(y.kind==='l')).sort((a,b)=>sc(b)-sc(a))[0];
+ go=thGo(),h=[['b','Ouvrier libre'],['l','Labo libre']].map(([k,t])=>{if(k==='b'&&go&&go.ready&&free.b>0){const s=go.nx[1];return`<div class="row" style="align-items:center"><span style="flex:3 1 200px">💡 <b>${t}</b> : ${esc(N[go.id]||'Hôtel de ville')} niv. ${go.lv-1} → ${go.lv}<br><small>${dur(s)} · fin ${fe(tEnd(s))}${online(tEnd(s))?'':' 😴'}<br>Prérequis terminés. L’HDV est long : lancez-le maintenant, les autres ouvriers feront les améliorations importantes pendant ce temps.</small></span><button class="ib pri" data-th>＋ File</button></div>`}const x=free[k]>0&&TODO.filter(y=>y.secs>0&&(k==='l')===(y.kind==='l')).sort((a,b)=>sc(b)-sc(a))[0];
   return x?`<div class="row" style="align-items:center"><span style="flex:3 1 200px">💡 <b>${t}</b> : ${esc(x.name)} niv. ${x.lv-1} → ${x.lv}<br><small>${dur(x.secs)} · fin ${fe(tEnd(x.secs))}${online(tEnd(x.secs))?'':' 😴'}</small></span><button class="ib pri" data-i="${TODO.indexOf(x)}">＋ File</button></div>`:''}).join('');
  $('sug').innerHTML=(h||'<small class="mut">Aucune suggestion : pas d’ouvrier libre ou rien à améliorer.</small>')+'<small class="mut" style="display:block;margin-top:6px">Règle simple de ce site, pas l’algorithme de Supercell (il n’est pas dans les données).</small>';
 }
@@ -325,20 +325,31 @@ const PB=/^(Laboratory|Gold Storage|Elixir Storage|Dark Elixir Storage|Barracks|
 capOf=r=>{const t=(D.T||[]).find(l=>l[0]===GL.m.th);return(INV.m[STO[r]]||[]).reduce((s,o)=>s+(((D.S||{})[STO[r]]||[])[o.lv-1]||0),0)+(t?t[4][r]||0:0)};
 function tier(e,cl){
  if(S.v!=='m')return[3,''];
- const nm=NM[e[0]]||'',th=GL.m.th||0,nx=(D.T||[]).find(l=>l[0]===th+1),r=Object.keys(STO).find(k=>STO[k]===e[0]);
- if(e[0]===D.G.hh)return[1,'Salle des héros au max : prérequis de l’HDV'];
- if(cl===0&&e[0]!==1000014)return[1,'À construire : tous les bâtiments sont requis'];
- if(th===16&&/^(Eagle Artillery|Cannon|Archer Tower)$/.test(nm))return[1,'Défense à maxer pour l’HDV 17'];
- if(r&&nx&&nx[3]===r&&capOf(r)<nx[2]*gp())return[1,'Stockage trop petit pour payer l’HDV'];
+ const run=thRun(),nm=NM[e[0]]||'',th=GL.m.th||0,nx=(D.T||[]).find(l=>l[0]===th+1),r=Object.keys(STO).find(k=>STO[k]===e[0]);
+ if(!run&&e[0]===D.G.hh)return[1,'Salle des héros au max : prérequis de l’HDV'];
+ if(!run&&cl===0&&e[0]!==1000014)return[1,'À construire : tous les bâtiments sont requis'];
+ if(!run&&th===16&&/^(Eagle Artillery|Cannon|Archer Tower)$/.test(nm))return[1,'Défense à maxer pour l’HDV 17'];
+ if(!run&&r&&nx&&nx[3]===r&&capOf(r)<nx[2]*gp())return[1,'Stockage trop petit pour payer l’HDV'];
  return PB.test(nm)||PK.test(nm)?[2,PK.test(nm)?'Troupe ou sort clé':'Priorité push (guides)']:[3,''];
+}
+/* Mode push : l’HDV est très long. Dès que TOUS les prérequis (🔴) sont terminés, il est proposé en premier. Pendant qu’il s’améliore, on propose les autres améliorations importantes (🚀). */
+function thRun(){const id=D.G.th;return!!id&&((INV.m[id]||[]).some(o=>o.t)||S.queue.some(q=>q.v==='m'&&q.did===id)||S.workers.some(w=>w.v==='m'&&w.did===id))}
+function thGo(){
+ if(!S.push||S.v!=='m'||!S.json)return null;
+ const id=D.G.th,lv=(GL.m.th||0)+1,nx=(D.T||[]).find(l=>l[0]===lv);
+ if(!id||!nx)return null;
+ const run=thRun(),todo=TODO.filter(x=>x.t===1).length,
+ cl=x=>{const a=(INV.m[x.did]||[]).filter(o=>!o.t).map(o=>o.lv);return x.lv?x.lv-1:a.length?Math.min(...a):0},
+ wait=[...S.workers,...S.queue].filter(x=>x.v==='m'&&x.did!==id&&DE[x.did]&&tier(DE[x.did],cl(x))[0]===1).length;
+ return{id,lv,nx,run,todo,wait,ready:!run&&!todo&&!wait}
 }
 function renderPB(){
  const el=$('pb'),th=GL.m.th||0;
  if(S.v!=='m'||!S.push){el.innerHTML=S.push?'<small class="mut">Le mode push concerne le village principal.</small>':'';return}
  if(!S.json){el.innerHTML='<small class="mut">Importez votre compte pour calculer le parcours le plus rapide.</small>';return}
- const nx=(D.T||[]).find(l=>l[0]===th+1),P=TODO.filter(x=>x.t<3),tot={G:0,E:0,D:0,X:0},c=t=>TODO.filter(x=>x.t===t).reduce((s,x)=>s+x.n,0);let tb=0,tl=0;
+ const nx=(D.T||[]).find(l=>l[0]===th+1),go=thGo(),gm=go?go.run?'HDV lancé ou en file : les autres ouvriers font les améliorations importantes (🚀) pendant ce temps.':go.ready?'Prérequis terminés : lancez l’HDV '+go.lv+' dès qu’un ouvrier est libre.':go.todo?'':'Prérequis en cours ('+go.wait+') : l’HDV '+go.lv+' sera proposé dès qu’ils sont terminés.':'',P=TODO.filter(x=>x.t<3),tot={G:0,E:0,D:0,X:0},c=t=>TODO.filter(x=>x.t===t).reduce((s,x)=>s+x.n,0);let tb=0,tl=0;
  P.forEach(x=>{tot[x.r]+=x.tcost*gp();if(x.kind==='l')tl+=x.tsecs*gp();else tb+=x.tsecs*gp()});
- el.innerHTML=`<b>🚀 Objectif : HDV ${th+1}</b><br>🔴 ${c(1)} prérequis · 🚀 ${c(2)} priorités<br>Reste à payer : ${Object.entries(tot).filter(a=>a[1]).map(([k,x])=>RE[k]+' '+kc(x)).join(' · ')||'—'}<br>Temps : ouvriers ≈ ${fs(tb/nw())} (avec ${nw()}) · labo ${fs(tl)}${nx?`<br>Puis l’HDV ${nx[0]} : ${RE[nx[3]]} ${kc(nx[2]*gp())} · ${fs(nx[1]*gp())} · capacité ${RE[nx[3]]} ${kc(capOf(nx[3]))}`:''}`;
+ el.innerHTML=`<b>🚀 Objectif : HDV ${th+1}</b><br>🔴 ${c(1)} prérequis · 🚀 ${c(2)} priorités${gm?`<br>🏰 ${gm}`:''}<br>Reste à payer : ${Object.entries(tot).filter(a=>a[1]).map(([k,x])=>RE[k]+' '+kc(x)).join(' · ')||'—'}<br>Temps : ouvriers ≈ ${fs(tb/nw())} (avec ${nw()}) · labo ${fs(tl)}${nx?`<br>Puis l’HDV ${nx[0]} : ${RE[nx[3]]} ${kc(nx[2]*gp())} · ${fs(nx[1]*gp())} · capacité ${RE[nx[3]]} ${kc(capOf(nx[3]))}`:''}`;
 }
 const SORT=z=>(a,b)=>(z==='a'?a.secs-b.secs:z==='c'?b.cost-a.cost:z==='k'?a.cost-b.cost:z==='n'?0:b.secs-a.secs)||b.lv-a.lv||a.name.localeCompare(b.name);
 let ROWS=[];
@@ -465,7 +476,6 @@ $('todo').onclick=e=>{const b=e.target.closest('button');if(!b)return;const x=TO
 $('tf').oninput=renderT;
 $('comp').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='up'){renderV();$('dj').showModal()}if(b.id==='ed'){const n=prompt('Nom du compte (il n’est pas dans l’export)',S.name||'');if(n!==null){S.name=n.trim();save();renderC();renderV()}}};
 $('dx').onclick=()=>$('dj').close();
-$('icf').value=S.icf||'e';$('icf').onchange=()=>{S.icf=$('icf').value;save()};
 const zset=v=>{S.zoom=Math.max(40,Math.min(5000,v));save();renderW()},cv=()=>$('cal').querySelector('.cal');let PZ=null;
 $('zi').onclick=()=>zset((S.zoom||150)*1.6);$('zo').onclick=()=>zset((S.zoom||150)/1.6);$('zr').oninput=()=>zset(Math.exp(+$('zr').value));
 $('zf').onclick=()=>zset(($('cal').clientWidth-90)/CS);
@@ -475,7 +485,7 @@ $('cal').addEventListener('touchend',e=>{if(e.touches.length<2){if(PZ)save();PZ=
 $('hp').onchange=()=>{S.hp=$('hp').checked;save();render()};$('ct').onchange=()=>{S.ct=$('ct').checked;save();render()};$('of').onchange=()=>{S.of=$('of').checked;save();render()};
 $('oa').onclick=()=>{const a=$('o1').value,b=$('o2').value;if(!a||!b||a===b)return toast('Choisissez deux heures différentes.','err');S.off.push([a,b]);save();render()};
 $('ol').onclick=e=>{const b=e.target.closest('button');if(b){S.off.splice(+b.dataset.i,1);save();render()}};
-$('sug').onclick=e=>{const b=e.target.closest('button'),x=b&&TODO[+b.dataset.i];if(x){S.queue.push({id:uid(),name:x.name,kind:x.kind,did:x.did,v:x.v,lv:x.lv});save();render()}};
+$('sug').onclick=e=>{const b=e.target.closest('button');if(b&&'th' in b.dataset){const g=thGo();if(g&&g.ready){S.queue.push({id:uid(),name:N[g.id]||'Hôtel de ville',kind:'b',did:g.id,v:'m',lv:g.lv});save();render()}return}const x=b&&TODO[+b.dataset.i];if(x){S.queue.push({id:uid(),name:x.name,kind:x.kind,did:x.did,v:x.v,lv:x.lv});save();render()}};
 ['bq','bo','bs','br','bz','bl1','bl2'].forEach(i=>$(i).addEventListener('input',renderB));
 $('bl').onclick=e=>{const b=e.target.closest('button');if(!b)return;const o=ROWS[+b.closest('li').dataset.i],l=o.eff+1;S.queue.push({id:uid(),name:o.name.replace(/ [#×].*$/,''),kind:o.e[2]==='H'?'h':o.e[2]==='S'?'b':'l',did:o.e[0],v:S.v,lv:l});save();render();toast('Ajouté à la file : '+o.name.replace(/ [#×].*$/,'')+' (niv. '+l+')')};
 $('bm').onclick=e=>{const b=e.target.closest('button');if(b){S.bm=b.dataset.m;save();renderB()}};
@@ -511,12 +521,14 @@ async function notify(done,next,test){
 $('nt').onclick=()=>notify('',null,1);
 addEventListener('focus',()=>document.title=T0);
 
-/* ---- Export agenda (.ics) : un événement à l’heure de fin, avec alarme ---- */
-function ics(list){const T=S.icf==='t';
+/* ---- Export agenda (.ics) : un événement par amélioration, à l’heure de fin, avec alarme (RFC 5545) ---- */
+function ics(list){
  if(!list.length)return toast('Aucun ouvrier à exporter.','err');
- const z=ms=>new Date(ms).toISOString().replace(/[-:]|\.\d{3}/g,''),e=t=>String(t).replace(/[\\;,]/g,'\\$&').replace(/\n/g,'\\n'),f=l=>l.match(/.{1,60}/gu).join('\r\n '),now=Date.now();
- if(list.length===1&&!T){const w=list[0];return window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('🔨 '+w.name+' terminé')+'&dates='+z(w.end)+'/'+z(w.end+9e5)+'&details='+encodeURIComponent('Prochaine étape : '+((S.queue.find(x=>x.v===w.v)||{}).name||'file d’attente vide')),'_blank')}
- const ev=list.map(w=>{const nx=S.queue.find(x=>x.v===w.v);return['BEGIN:V'+(T?'TODO':'EVENT'),'UID:'+w.id+'@coc-planner','DTSTAMP:'+z(now),...(T?['DTSTART:'+z(now),'DUE:'+z(w.end),'STATUS:NEEDS-ACTION','PRIORITY:5']:['DTSTART:'+z(w.end),'DTEND:'+z(w.end+9e5)]),'SUMMARY:'+e('🔨 '+w.name+' terminé ('+(w.v==='m'?'village principal':'base des ouvriers')+')'),'DESCRIPTION:'+e('Prochaine étape : '+(nx?nx.name:'file d’attente vide')),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e('Ouvrier disponible : '+w.name),T?'TRIGGER;VALUE=DATE-TIME:'+z(w.end):'TRIGGER:PT0S','END:VALARM','END:V'+(T?'TODO':'EVENT')].map(f).join('\r\n')});
+ const z=ms=>new Date(ms).toISOString().replace(/[-:]|\.\d{3}/g,''),e=t=>String(t).replace(/[\\;,]/g,'\\$&').replace(/\r\n|\r|\n/g,'\\n'),te=new TextEncoder(),
+ /* lignes pliées à 75 octets UTF-8 au plus, sans couper un caractère */
+ f=l=>{const o=[];let c='',n=0;for(const ch of l){const k=te.encode(ch).length;if(n+k>(o.length?74:75)){o.push(c);c='';n=0}c+=ch;n+=k}o.push(c);return o.join('\r\n ')},now=Date.now();
+ if(list.length===1){const w=list[0];return window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent('🔨 '+w.name+' terminé')+'&dates='+z(w.end)+'/'+z(w.end+9e5)+'&details='+encodeURIComponent('Prochaine étape : '+((S.queue.find(x=>x.v===w.v)||{}).name||'file d’attente vide')),'_blank')}
+ const ev=list.map(w=>{const nx=S.queue.find(x=>x.v===w.v);return['BEGIN:VEVENT','UID:'+String(w.id).replace(/[^\w.-]/g,'-')+'@coc-planner','DTSTAMP:'+z(now),'DTSTART:'+z(w.end),'DTEND:'+z(w.end+9e5),'SUMMARY:'+e('🔨 '+w.name+' terminé ('+(w.v==='m'?'village principal':'base des ouvriers')+')'),'DESCRIPTION:'+e('Prochaine étape : '+(nx?nx.name:'file d’attente vide')),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e('Ouvrier disponible : '+w.name),'TRIGGER:PT0S','END:VALARM','END:VEVENT'].map(f).join('\r\n')});
  const t=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//CoC Planner//FR','CALSCALE:GREGORIAN',...ev,'END:VCALENDAR'].join('\r\n')+'\r\n';
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/calendar;charset=utf-8'}));a.download='coc-planner.ics';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1e4);
  toast('📅 Fichier .ics créé : ouvrez-le avec votre agenda.');
