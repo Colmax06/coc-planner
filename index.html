@@ -89,7 +89,16 @@ section,details{padding:12px;border-radius:16px}
 #s-p{order:1}#s-n{order:2}main>.grid{order:3}#s-c{order:4}#s-t{order:5}#s-b{order:6}#s-r{order:7}#s-nt{order:8}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;margin:10px 0;background:var(--in);border:1px solid var(--line);border-radius:14px}
 .seg button{background:none;border:0;color:var(--mut);font-weight:700;padding:9px 4px}.seg .on{background:linear-gradient(var(--gold),var(--g3));color:#1a1204}.seg .on .pill{color:#1a1204;background:#fff5;border-color:transparent}
-.ok{color:var(--ok);font-weight:700}.row #tf{margin:0;width:auto}
+.ok{color:var(--ok);font-weight:700}
+#bl{display:grid;gap:10px;margin-bottom:10px}
+.ug{background:var(--in);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.uh{padding:9px 10px;text-align:center;font-weight:700}
+.us{padding:6px 10px;text-align:center;font-size:.85rem;color:var(--mut);background:var(--card);border-top:1px solid var(--line)}.us b,.ut b{color:var(--gold)}
+.ur{display:grid;grid-template-columns:96px minmax(0,1fr);border-top:1px solid var(--line)}
+.ul0{display:grid;justify-items:center;align-content:center;gap:5px;padding:8px 6px;background:var(--card);border-right:1px solid var(--line)}.ul0 .lvl{font-size:1.05rem}.ul0 small{font-size:.72rem;text-align:center}
+.ur1{display:grid;align-content:center;gap:3px;padding:8px 10px}
+.lv{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;font-size:.88rem}.lv span:last-child{white-space:nowrap}.lv span:nth-child(2){text-align:right;color:var(--gold);font-weight:700}.lv.more{display:block;color:var(--mut);text-align:center;font-size:.8rem}
+.ut{margin-top:4px;padding:5px 8px;text-align:center;font-size:.82rem;background:var(--card);border:1px solid var(--line);border-radius:8px}.row #tf{margin:0;width:auto}
 dialog{background:var(--card);color:var(--tx);border:1px solid var(--gold2);border-radius:16px;width:calc(100% - 24px);max-width:560px;padding:14px}dialog::backdrop{background:#000b}
 ol.tuto{margin:10px 0;padding-left:22px}.tuto li{display:list-item;background:none;border:0;padding:3px 0}
 @media(prefers-reduced-motion:reduce){body{transition:none}}
@@ -160,7 +169,7 @@ ol.tuto{margin:10px 0;padding-left:22px}.tuto li{display:list-item;background:no
   <select id="br" aria-label="Ressource"><option value="">Toutes ressources</option><option value="G">🪙 Or</option><option value="E">💧 Élixir</option><option value="D">🖤 Élixir noir</option><option value="X">🪙/💧 Murailles</option></select>
   <input id="bl1" type="number" inputmode="numeric" min="0" placeholder="Niv. min" aria-label="Niveau minimum"><input id="bl2" type="number" inputmode="numeric" min="0" placeholder="Niv. max" aria-label="Niveau maximum"><select id="bz" aria-label="Tri"><option value="d">Plus long d’abord</option><option value="a">Plus court d’abord</option><option value="c">Plus cher d’abord</option><option value="k">Moins cher d’abord</option><option value="n">Par nom</option></select>
  </div>
- <ul id="bl" class="sc tall"></ul></details>
+ <div id="bl" class="sc tall"></div></details>
 
 
 
@@ -368,7 +377,7 @@ function renderB(){
   a.forEach((x,k)=>{
    const n=x.n||1,eff=x.busy?x.lv+1:x.lv,rest=e[6].filter(l=>l[0]>eff&&l[0]<=M&&l[1]<=g),Ln=rest[0],max=!rest.length;
    if((L1&&x.lv<L1)||(L2&&x.lv>L2)||(St&&(St==='busy'?!x.busy:St!==(max?'max':'need'))))return;
-   const r={e,name:name+(a.length>1&&e[2]!=='W'?' #'+(k+1):'')+(n>1?' ×'+n:''),k,lv:x.lv,eff,busy:x.busy,n,M,max,rs,secs:Ln?Ln[2]:0,cost:Ln?Ln[3]:0,tcost:rest.reduce((s,l)=>s+l[3],0)*n,tsecs:rest.reduce((s,l)=>s+l[2],0)*n,need:rest.length*n};
+   const r={e,name:name+(a.length>1&&e[2]!=='W'?' #'+(k+1):'')+(n>1?' ×'+n:''),k,lv:x.lv,eff,busy:x.busy,n,M,g,rest,max,rs,secs:Ln?Ln[2]:0,cost:Ln?Ln[3]:0,tcost:rest.reduce((s,l)=>s+l[3],0)*n,tsecs:rest.reduce((s,l)=>s+l[2],0)*n,need:rest.length*n};
    if(S.of&&r.secs&&!online(tEnd(r.secs)))return;
    ROWS.push(r)})});
  ROWS.sort((a,b)=>a.max-b.max||SORT(z)(a,b));
@@ -376,9 +385,18 @@ function renderB(){
  const tr=Object.entries(tot).filter(x=>x[1]).map(([k,x])=>RE[k]+' '+kc(x)).join(' · ')||'—';
  $('bc2').textContent=ROWS.length;
  $('bt').innerHTML=`<p style="margin:0"><b>Reste à payer (${lab?'laboratoire':'constructions'}) :</b> ${tr}${S.gp?' <small>(Gold Pass −'+S.gp+' %)</small>':''}<br><b>Niveaux restants :</b> ${cnt}<br><b>Temps cumulé :</b> ${lab?'labo '+fs(tl):'ouvriers '+fs(tb)+' (≈ '+fs(tb/nw())+' avec '+nw()+' ouvrier'+(nw()>1?'s':'')+')'}</p>`;
- $('bl').innerHTML=ROWS.map((r,i)=>{const e=r.e,g=gl(e),M2=mx(e,g+1),c2=cap(e,g+1),
-  hint=!off&&r.k===0&&g<big&&(M2>r.M||c2>cap(e,g))?`<br><small>↗ ${GN[e[3]]} ${g+1} : max ${M2}${c2>cap(e,g)?', +'+(c2-cap(e,g))+' ex.':''}</small>`:'';
-  return`<li data-i="${i}">${ico({did:e[0],kind:e[2]==='H'?'h':e[2]==='S'?'b':'l',lv:r.eff||0})}<span class="t">${esc(r.name)} <span class="pill">${r.lv?'niv. '+r.lv:'à construire'}</span>${r.busy?' <span class="pill">⏳ en cours</span>':''}<br>${r.max?'<small class="ok">✅ Niveau max</small>':`<small>→ max ${r.M} · prochaine : ${r.secs?fs(r.secs*gp()):'instantanée'} · ${RE[r.rs]} ${kc(r.cost*gp())}</small><div class="bar"><i style="width:${Math.round(Math.min(r.eff,r.M)/r.M*100)}%"></i></div><small>Reste : ${RE[r.rs]} ${kc(r.tcost*gp())}${r.tsecs?' · '+fs(r.tsecs*gp()):''}</small>`}${hint}</span>${r.max||r.busy?'':'<button class="ib pri" data-a="add" title="Ajouter à la file">＋</button>'}</li>`}).join('')||'<li class="mut">Aucun bâtiment : importez le compte ou changez les filtres.</li>';
+ /* un bloc par type : titre, total restant, puis une ligne par exemplaire (niveau actuel/max, ↑ pour l’ajouter à la file, détail des niveaux restants) */
+ const grp=new Map();ROWS.forEach((r,i)=>{let G=grp.get(r.e[0]);if(!G)grp.set(r.e[0],G={e:r.e,rs:r.rs,rows:[]});G.rows.push([r,i])});
+ $('bl').innerHTML=[...grp.values()].map(G=>{
+  const e=G.e,R0=G.rows[0][0],need=G.rows.reduce((t,[r])=>t+r.need,0),cost=G.rows.reduce((t,[r])=>t+r.tcost,0)*gp(),secs=G.rows.reduce((t,[r])=>t+r.tsecs,0)*gp(),
+  g=gl(e),M2=mx(e,g+1),c2=cap(e,g+1),
+  hint=!off&&g<big&&(M2>R0.M||c2>cap(e,g))?`<div class="us"><small>↗ ${GN[e[3]]} ${g+1} : max ${M2}${c2>cap(e,g)?', +'+(c2-cap(e,g))+' ex.':''}</small></div>`:'';
+  return`<div class="ug"><div class="uh">${esc(N[e[0]]||'#'+e[0])}</div>${need?`<div class="us"><b>${need}</b> amélioration${need>1?'s':''} · ${RE[G.rs]} <b>${kc(cost)}</b>${secs?' · '+fs(secs):''}</div>`:''}${hint}${G.rows.map(([r,i])=>{
+   const hm=r.rest,sh=hm.length>5?hm.slice(0,4):hm,more=hm.length-sh.length,
+   lines=sh.map(l=>`<div class="lv"><span>Niv. ${l[0]}</span><span>${RE[r.rs]} ${kc(l[3]*gp())}</span><span>${l[2]?fs(l[2]*gp()):'instantané'}</span></div>`).join('')+(more>0?`<div class="lv more">… et ${more} autres niveaux</div>`:''),
+   tot=hm.length>1||r.n>1?`<div class="ut">${hm.length} niveau${hm.length>1?'x':''}${r.n>1?' × '+r.n:''} · ${RE[r.rs]} <b>${kc(r.tcost*gp())}</b>${r.tsecs?' · '+fs(r.tsecs*gp()):''}</div>`:'',
+   fin=r.max?`<div class="ok">${r.busy?'Puis ':''}✅ ${r.g<big?'Au max pour '+GN[r.e[3]]+' '+r.g:'Niveau max'}</div>`:lines+tot;
+   return`<div class="ur" data-i="${i}"><div class="ul0">${ico({did:e[0],kind:e[2]==='H'?'h':e[2]==='S'?'b':'l',lv:r.eff||0})}<b class="lvl">${r.lv}/${r.M}</b>${r.lv?'':'<small>à construire</small>'}${r.n>1?`<small>× ${r.n}</small>`:''}${r.max||r.busy?'':'<button class="ib pri" data-a="add" title="Ajouter à la file" aria-label="Ajouter à la file">↑</button>'}</div><div class="ur1">${r.busy?`<div class="lv"><span>⏳ En cours : niv. ${r.eff}</span></div>`:''}${fin}</div></div>`}).join('')}</div>`}).join('')||'<div class="mut">Aucun bâtiment : importez le compte ou changez les filtres.</div>';
 }
 /* Progression : niveaux atteints / niveaux autorisés par le HDV (ou le bâtiment de référence) */
 function renderC(){
@@ -487,7 +505,7 @@ $('oa').onclick=()=>{const a=$('o1').value,b=$('o2').value;if(!a||!b||a===b)retu
 $('ol').onclick=e=>{const b=e.target.closest('button');if(b){S.off.splice(+b.dataset.i,1);save();render()}};
 $('sug').onclick=e=>{const b=e.target.closest('button');if(b&&'th' in b.dataset){const g=thGo();if(g&&g.ready){S.queue.push({id:uid(),name:N[g.id]||'Hôtel de ville',kind:'b',did:g.id,v:'m',lv:g.lv});save();render()}return}const x=b&&TODO[+b.dataset.i];if(x){S.queue.push({id:uid(),name:x.name,kind:x.kind,did:x.did,v:x.v,lv:x.lv});save();render()}};
 ['bq','bo','bs','br','bz','bl1','bl2'].forEach(i=>$(i).addEventListener('input',renderB));
-$('bl').onclick=e=>{const b=e.target.closest('button');if(!b)return;const o=ROWS[+b.closest('li').dataset.i],l=o.eff+1;S.queue.push({id:uid(),name:o.name.replace(/ [#×].*$/,''),kind:o.e[2]==='H'?'h':o.e[2]==='S'?'b':'l',did:o.e[0],v:S.v,lv:l});save();render();toast('Ajouté à la file : '+o.name.replace(/ [#×].*$/,'')+' (niv. '+l+')')};
+$('bl').onclick=e=>{const b=e.target.closest('button');if(!b)return;const o=ROWS[+b.closest('[data-i]').dataset.i],l=o.eff+1;S.queue.push({id:uid(),name:o.name.replace(/ [#×].*$/,''),kind:o.e[2]==='H'?'h':o.e[2]==='S'?'b':'l',did:o.e[0],v:S.v,lv:l});save();render();toast('Ajouté à la file : '+o.name.replace(/ [#×].*$/,'')+' (niv. '+l+')')};
 $('bm').onclick=e=>{const b=e.target.closest('button');if(b){S.bm=b.dataset.m;save();renderB()}};
 $('tq').onclick=e=>{const b=e.target.closest('button');if(b){S.tm=b.dataset.m;save();renderT()}};
 ['ts','tr','tl1','tl2'].forEach(i=>$(i).addEventListener('input',renderT));
